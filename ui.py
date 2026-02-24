@@ -434,7 +434,7 @@ folder = 'games'
 os.makedirs(folder, exist_ok = True)
 
 fen_file_name = input(f"name of the fen-file (Note that if there exists a file with same name in the folder {folder}, it will be overwritten):\t")
-fen_file_path
+fen_file_path = folder + '/' + fen_file_name
 
 window = MainScreen(800, 600)
 
