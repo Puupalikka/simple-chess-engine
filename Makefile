@@ -11,7 +11,7 @@ $(TARGET): engine.c
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $(TARGET) engine.c
 
 run: $(TARGET)
-	python3 ui.py
+	python3 gui.py
 
 install:
 	pip install -r requirements.txt
