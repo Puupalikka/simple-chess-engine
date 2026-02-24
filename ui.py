@@ -450,8 +450,15 @@ piece_index = None
 #fen = "4k3/8/8/8/8/8/8/4K3 w KQkq - 0 1"
 #previous_board = "0000k0000000000000000000000000000000000000000000000000000000K000"
 
-with open(fen_file_path, 'w') as fen_file:
-	fen_file.write(fen)
+while True:
+	try:
+		fen_file_name = input(f"name of the fen-file (Note that if there exists a file with same name in the folder {folder}, it will be overwritten):\t")
+		fen_file_path = folder + '/' + fen_file_name
+		with open(fen_file_path, 'w') as fen_file:
+			fen_file.write(fen)
+			break;
+	except IsADirectoryError:
+		pass
 
 while True:
 	window.width, window.height = window.scr.get_size()
