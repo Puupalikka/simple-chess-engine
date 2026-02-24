@@ -430,8 +430,11 @@ def try_user_move(fen, previous_board, piece_index, end_index):
 	previous_board = previous_board.value.decode('utf-8')
 	return fen, previous_board, turn
 
+folder = 'games'
+os.makedirs(folder, exist_ok = True)
 
-fen_file_name = input("name of the fen-file (Note that if there exists a file with same name, it will be overwritten):\t")
+fen_file_name = input(f"name of the fen-file (Note that if there exists a file with same name in the folder {folder}, it will be overwritten):\t")
+fen_file_path
 
 window = MainScreen(800, 600)
 
@@ -447,7 +450,7 @@ piece_index = None
 #fen = "4k3/8/8/8/8/8/8/4K3 w KQkq - 0 1"
 #previous_board = "0000k0000000000000000000000000000000000000000000000000000000K000"
 
-with open(fen_file_name, 'w') as fen_file:
+with open(fen_file_path, 'w') as fen_file:
 	fen_file.write(fen)
 
 while True:
@@ -484,7 +487,7 @@ while True:
 					fen, previous_board, turn = try_user_move(fen, previous_board, piece_index, end_index)
 					
 					if prev_fen != fen:
-						with open(fen_file_name, 'a') as fen_file:
+						with open(fen_file_path, 'a') as fen_file:
 							fen_file.write('\n' + fen)
 					
 					piece_index, end_index = None, None
