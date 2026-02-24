@@ -62,7 +62,7 @@ def get_move_type(changed):
 	elif len(changed) == 3:
 		return 'en passant'
 	elif len(changed) == 2:
-		if (changed[0][0] in ['p', 'P'] or changed[1][0] in ['p', 'P']) and (changed[1][2]//8 in [0,7] or changed[0][2]//8 in [0,7]):
+		if (changed[0][1] in ['p', 'P'] or changed[1][1] in ['p', 'P']) and (changed[1][2]//8 in [0,7] or changed[0][2]//8 in [0,7]):
 			for change in changed:
 				if change[2] in [0,7] and change[0] != 0:
 					return 'promotion capture'
@@ -361,12 +361,17 @@ full_pgn = '\n'.join([pgn_tags, '\n'.join(pgn_moves)])
 print('\n\nHere is a prewiew of the pgn-file:\n\n')
 print(full_pgn)
 print()
-pgn_filename = input('filename (Note that if a file with the same name exists, it will be overwritten):\t')
 
-with open(pgn_filename, 'w') as pgn_file:
-	pgn_file.write(full_pgn)
-
-
+success = False
+while (not success):
+	try:
+		pgn_filename = input('filename (Note that if a file with the same name exists, it will be overwritten):\t')
+		pgn_path = 'games/' + pgn_filename
+		with open(pgn_path, 'w') as pgn_file:
+			pgn_file.write(full_pgn)
+			success = True
+	except IsADirectoryError:
+		pass
 
 
 
