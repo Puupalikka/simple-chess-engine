@@ -319,7 +319,8 @@ file_path = ''
 
 while file_path == '':
 	try:
-		file_path = input("path to the game in FEN-notation:\n")
+		filename = input("filename of the game in FEN-notation:\n")
+		file_path = 'games/' + filename
 		with open(file_path, 'r') as fen_file:
 			fens = fen_file.readlines()
 	except FileNotFoundError:
