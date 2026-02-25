@@ -218,7 +218,6 @@ int is_legal_vector(const char piece, const int vec_x, const int vec_y, const in
 			printf("Piece wasn't detected.\n");
 			return 0;
 	}
-	printf("Piece wasn't detected and default was skipped.\n");
 	return 0;
 }
 
