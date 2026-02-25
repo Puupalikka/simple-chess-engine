@@ -356,9 +356,13 @@ for i in range(len(fens)):
 
 
 pgn_moves = parse_pgn_notation(moves)
-pgn_tags = parse_tags(pgn_moves)
 
-full_pgn = '\n'.join([pgn_tags, '\n'.join(pgn_moves)])
+if len(pgn_moves) != 0:
+	pgn_tags = parse_tags(pgn_moves)
+	full_pgn = '\n'.join([pgn_tags, '\n'.join(pgn_moves)])
+else:
+	full_pgn = 'Fen notation is invalid.'
+
 print('\n\nHere is a prewiew of the pgn-file:\n\n')
 print(full_pgn)
 print()
