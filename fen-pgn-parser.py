@@ -295,7 +295,12 @@ def parse_pgn_notation(moves):
 
 def parse_tags(pgn_moves):
 	
-	result = pgn_moves[-1].split(' ')[-1]
+	last_move = pgn_moves[-1]
+	result = last_move.split(' ')[-1]
+	if result not in ['1/2-1/2', '1-0', '0-1']:
+		result = '*'
+		pgn_moves[-1] += ' *'
+	
 	date = datetime.now().strftime('%Y.%m.%d')
 	
 	black_player = input('Who played as black:\t')
