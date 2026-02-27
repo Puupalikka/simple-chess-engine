@@ -977,7 +977,6 @@ int is_enough_material(const char* board){
 	}
 	
 	if ((bb_alive > 0 && bw_alive > 0) || (bb_alive > 0 && n_alive > 0) || (bw_alive > 0 && n_alive > 0 ) || n_alive > 1){
-		printf("bb: %d, bw: %d, n: %d\n", bb_alive, bw_alive, n_alive);
 		return 1;
 	} else {
 		return 0;
