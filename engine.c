@@ -108,6 +108,7 @@ int is_ep_possible(char turn, char* board, int ep_index);
 void print_board(char* board);
 int get_ep_index(char* fen);
 void made_move(char* fen);
+void castling_from_str_to_int(char* fen, int* castling_string);
 
 
 // evaluating if move is legal
@@ -1087,10 +1088,8 @@ int is_3fold_rep(){ // doesn't work
 	return 0;
 }
 
-void set_castling_rights(int* castlings, char* fen){
-	
-	int castling_king = 0;
-	int castling_queen = 0;
+
+void castling_from_str_to_int(char* fen, int* castling_string){
 	
 	int fen_len = strlen(fen);
 	int spaces = 0;
@@ -1120,6 +1119,26 @@ void set_castling_rights(int* castlings, char* fen){
 		}
 	}
 	
+	castling_string[0] = w_king;
+	castling_string[1] = w_queen;
+	castling_string[2] = b_king;
+	castling_string[3] = b_queen;
+}
+
+void set_castling_rights(int* castlings, char* fen){
+	
+	int castling_king = 0;
+	int castling_queen = 0;
+	
+	int castling_string[] = {0,0,0,0};
+	
+	castling_from_str_to_int(fen, castling_string);
+	
+	int w_king = castling_string[0];
+	int w_queen = castling_string[1];
+	int b_king = castling_string[2];
+	int b_queen = castling_string[3];
+	
 	if (w_king && b_king){
 		castling_king = 3;
 	} else if (w_king && !b_king){
@@ -1143,6 +1162,7 @@ void set_castling_rights(int* castlings, char* fen){
 	castlings[0] = castling_king;
 	castlings[1] = castling_queen;
 }
+
 
 int is_ep_possible(char turn, char* board, int ep_index){
 	if (turn == 'b'){
