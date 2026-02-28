@@ -45,6 +45,21 @@ static const int r_size = 28;
 static const int q_size = 56;
 static const int k_size = 8;
 
+static const int vector_sizes[115] = {
+	['K'] = 8,
+	['k'] = 8,
+	['Q'] = 56,
+	['q'] = 56,
+	['R'] = 28,
+	['r'] = 28,
+	['B'] = 28,
+	['b'] = 28,
+	['N'] = 8,
+	['n'] = 8,
+	['P'] = 4,
+	['p'] = 4
+	};
+
 struct Position {
 	char position[64];
 	char turn;
