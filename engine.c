@@ -109,9 +109,34 @@ void print_board(char* board);
 int get_ep_index(char* fen);
 void made_move(char* fen);
 void castling_from_str_to_int(char* fen, int* castling_string);
-
+void get_vector(int vector[2], char piece, int index);
 
 // evaluating if move is legal
+void get_vector(int vector[2], char piece, int index){
+	if (piece == 'k' || piece == 'K'){
+		vector[0] = k_vecs[index][0];
+		vector[1] = k_vecs[index][1];
+	} else if (piece == 'q' || piece == 'Q'){
+		vector[0] = q_vecs[index][0];
+		vector[1] = q_vecs[index][1];
+	} else if (piece == 'r' || piece == 'R'){
+		vector[0] = r_vecs[index][0];
+		vector[1] = r_vecs[index][1];
+	} else if (piece == 'b' || piece == 'B'){
+		vector[0] = b_vecs[index][0];
+		vector[1] = b_vecs[index][1];
+	} else if (piece == 'n' || piece == 'N'){
+		vector[0] = n_vecs[index][0];
+		vector[1] = n_vecs[index][1];
+	} else if (piece == 'P'){
+		vector[0] = white_p_vecs[index][0];
+		vector[1] = white_p_vecs[index][1];
+	} else if (piece == 'p'){
+		vector[0] = black_p_vecs[index][0];
+		vector[1] = black_p_vecs[index][1];
+	}
+}
+
 int is_legal_vector(const char piece, const int vec_x, const int vec_y, const int end_x, const int end_y){
 	
 	char pieces[] = {'P','p','N','n','B','b','R','r','Q','q','K','k'};
@@ -834,95 +859,20 @@ int is_any_move_left(const char* board, const char* prev_board, char turn){
 		int start_x = i%8;
 		int start_y = 7-i/8;
 		
-		if (piece == 'k' || piece == 'K'){
-			for (int j = 0; j < k_size; j++){
-				
-				int vec_x = k_vecs[j][0];
-				int vec_y = k_vecs[j][1];
-				int end_x = start_x + vec_x;
-				int end_y = start_y + vec_y;
-				
-				if (is_basic_move_legal(board, (const char) piece, (const int) vec_x, (const int) vec_y, (const int) end_x, (const int) end_y, prev_board)){
-					return 1;
-				}
-			}
+		int vecs_size = vector_sizes[piece];
+		for (int j = 0; j < vecs_size; j++){
 			
-		} else if (piece == 'q' || piece == 'Q'){
-			for (int j = 0; j < q_size; j++){
-				
-				int vec_x = q_vecs[j][0];
-				int vec_y = q_vecs[j][1];
-				int end_x = start_x + vec_x;
-				int end_y = start_y + vec_y;
-				
-				if (is_basic_move_legal(board, (const char) piece, (const int) vec_x, (const int) vec_y, (const int) end_x, (const int) end_y, prev_board)){
-					return 1;
-				}
-			}
+			int vector[2];
+			get_vector(vector, piece, j);
 			
-		} else if (piece == 'r' || piece == 'R'){
-			for (int j = 0; j < r_size; j++){
-				
-				int vec_x = r_vecs[j][0];
-				int vec_y = r_vecs[j][1];
-				int end_x = start_x + vec_x;
-				int end_y = start_y + vec_y;
-				
-				if (is_basic_move_legal(board, (const char) piece, (const int) vec_x, (const int) vec_y, (const int) end_x, (const int) end_y, prev_board)){
-					return 1;
-				}
-			}
+			int vec_x = vector[0];
+			int vec_y = vector[1];
 			
-		} else if (piece == 'b' || piece == 'B'){
-			for (int j = 0; j < b_size; j++){
-				
-				int vec_x = b_vecs[j][0];
-				int vec_y = b_vecs[j][1];
-				int end_x = start_x + vec_x;
-				int end_y = start_y + vec_y;
-				
-				if (is_basic_move_legal(board, (const char) piece, (const int) vec_x, (const int) vec_y, (const int) end_x, (const int) end_y, prev_board)){
-					return 1;
-				}
-			}
+			int end_x = start_x + vec_x;
+			int end_y = start_y + vec_y;
 			
-		} else if (piece == 'n' || piece == 'N'){
-			for (int j = 0; j < n_size; j++){
-				
-				int vec_x = n_vecs[j][0];
-				int vec_y = n_vecs[j][1];
-				int end_x = start_x + vec_x;
-				int end_y = start_y + vec_y;
-				
-				if (is_basic_move_legal(board, (const char) piece, (const int) vec_x, (const int) vec_y, (const int) end_x, (const int) end_y, prev_board)){
-					return 1;
-				}
-			}
-			
-		} else if (piece == 'p'){
-			for (int j = 0; j < p_size; j++){
-				
-				int vec_x = black_p_vecs[j][0];
-				int vec_y = black_p_vecs[j][1];
-				int end_x = start_x + vec_x;
-				int end_y = start_y + vec_y;
-				
-				if (is_basic_move_legal(board, (const char) piece, (const int) vec_x, (const int) vec_y, (const int) end_x, (const int) end_y, prev_board)){
-					return 1;
-				}
-			}
-			
-		} else if (piece == 'P'){
-			for (int j = 0; j < p_size; j++){
-				
-				int vec_x = white_p_vecs[j][0];
-				int vec_y = white_p_vecs[j][1];
-				int end_x = start_x + vec_x;
-				int end_y = start_y + vec_y;
-				
-				if (is_basic_move_legal(board, (const char) piece, (const int) vec_x, (const int) vec_y, (const int) end_x, (const int) end_y, prev_board)){
-					return 1;
-				}
+			if (is_basic_move_legal(board, (const char) piece, (const int) vec_x, (const int) vec_y, (const int) end_x, (const int) end_y, prev_board)){
+				return 1;
 			}
 		}
 	}
