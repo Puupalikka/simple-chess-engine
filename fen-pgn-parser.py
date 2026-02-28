@@ -62,7 +62,7 @@ def get_move_type(changed):
 	elif len(changed) == 3:
 		return 'en passant'
 	elif len(changed) == 2:
-		if (changed[0][1] in ['p', 'P'] or changed[1][1] in ['p', 'P']) and (changed[1][2]//8 in [0,7] or changed[0][2]//8 in [0,7]):
+		if (changed[0][0] in ['p', 'P'] and changed[0][1] == 0 and changed[1][2]//8 in [0,7]) or (changed[1][0] in ['p', 'P'] and changed[1][1] == 0 and changed[0][2]//8 in [0,7]):
 			for change in changed:
 				if change[2] in [0,7] and change[0] != 0:
 					return 'promotion capture'
