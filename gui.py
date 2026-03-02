@@ -510,6 +510,9 @@ while True:
 	pygame.display.update()
 
 	if game_status != 'running':
+		if game_status == 'draw':
+			with open(fen_file_path, 'a') as fen_file:
+				fen_file.write('\ndraw')
 		break
 
 end_text_surface = window.font.render(game_status, True, (255, 255, 255))
