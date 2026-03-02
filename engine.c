@@ -123,8 +123,8 @@ int is_ep_possible(char turn, char* board, int ep_index);
 void print_board(char* board);
 int get_ep_index(char* fen);
 void made_move(char* fen);
-void castling_from_str_to_int(char* fen, int* castling_string);
 void get_vector(int vector[2], char piece, int index);
+void modify_castlings(int* castlings, char piece);
 
 // evaluating if move is legal
 void get_vector(int vector[2], char piece, int index){
@@ -1017,7 +1017,7 @@ void free_history(struct Position *first){
 	history_init.next = NULL;
 }
 
-int is_3fold_rep(){ // doesn't work
+int is_3fold_rep(){
 	
 	struct Position* this_history = &history_init;
 	struct Position* last_history = history_end;
@@ -1053,78 +1053,39 @@ int is_3fold_rep(){ // doesn't work
 }
 
 
-void castling_from_str_to_int(char* fen, int* castling_string){
+void modify_castlings(int* castlings, char piece){
 	
-	int fen_len = strlen(fen);
-	int spaces = 0;
-	int castling_location = 1;
-	
-	int w_king = 0;
-	int b_king = 0;
-	int w_queen = 0;
-	int b_queen = 0;
-	
-	for (int i = 1; spaces < 3; i++){
-		if (fen[fen_len - i] == ' '){
-			spaces++;
-		}
-		castling_location++;
+	if (piece == 'K' && castlings[0] == 0){
+		castlings[0] = 1;
+	} else if (piece == 'Q' && castlings[1] == 0){
+		castlings[1] = 1;
+	} else if (piece == 'k' && castlings[0] == 0){
+		castlings[0] = 2;
+	} else if (piece == 'q' && castlings[1] == 0){
+		castlings[1] = 2;
+	} else if (piece == 'K' || piece == 'k'){
+		castlings[0] = 3;
+	} else if (piece == 'Q' || piece == 'q'){
+		castlings[1] = 3;
 	}
-	
-	for (int i = castling_location; fen[i] != ' '; i--){
-		if (fen[i] == 'K'){
-			w_king = 1;
-		} else if (fen[i] == 'Q'){
-			w_queen = 1;
-		} else if (fen[i] == 'k'){
-			b_king = 1;
-		} else if (fen[i] == 'q'){
-			b_queen = 1;
-		}
-	}
-	
-	castling_string[0] = w_king;
-	castling_string[1] = w_queen;
-	castling_string[2] = b_king;
-	castling_string[3] = b_queen;
 }
 
 void set_castling_rights(int* castlings, char* fen){
 	
-	int castling_king = 0;
-	int castling_queen = 0;
+	int fen_len = strlen(fen);
 	
-	int castling_string[] = {0,0,0,0};
-	
-	castling_from_str_to_int(fen, castling_string);
-	
-	int w_king = castling_string[0];
-	int w_queen = castling_string[1];
-	int b_king = castling_string[2];
-	int b_queen = castling_string[3];
-	
-	if (w_king && b_king){
-		castling_king = 3;
-	} else if (w_king && !b_king){
-		castling_king = 1;
-	} else if (!w_king && b_king){
-		castling_king = 2;
-	} else if (!w_king && !b_king){
-		castling_king = 0;
+	int ep_len;
+	if (get_ep_index(fen) != -1){
+		ep_len = 2;
+	} else {
+		ep_len = 1;
 	}
 	
-	if (w_queen && b_queen){
-		castling_queen = 3;
-	} else if (w_queen && !b_queen){
-		castling_queen = 1;
-	} else if (!w_queen && b_queen){
-		castling_queen = 2;
-	} else if (!w_queen && !b_queen){
-		castling_queen = 0;
-	}
+	int i = fen_len - (3 + 2 + ep_len);
 	
-	castlings[0] = castling_king;
-	castlings[1] = castling_queen;
+	for (; fen[i] != ' '; i--){
+		modify_castlings(castlings, fen[i]);
+	}
 }
 
 
