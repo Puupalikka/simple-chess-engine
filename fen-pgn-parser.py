@@ -331,13 +331,15 @@ while file_path == '':
 	except FileNotFoundError:
 		file_path = ''
 	
+is_threefold_repetition = False
+if fens[-1] in ['draw\n', 'draw']:
+	is_threefold_repetition = True
+	fens = fens[:-1]
 
 moves = []
 
 for i in range(len(fens)):
-	fen = fens[i]
-	if fen[-1] == '\n':
-		fens[i] = fen.rstrip()
+	fens[i] = fens[i].rstrip()
 
 for i in range(len(fens)):
 	
@@ -362,6 +364,9 @@ for i in range(len(fens)):
 
 pgn_moves = parse_pgn_notation(moves)
 
+if is_threefold_repetition:
+	pgn_moves[-1] = ' '.join(pgn_moves[-1].split(' ')[:-1]) + ' 1/2-1/2'
+
 if len(pgn_moves) != 0:
 	pgn_tags = parse_tags(pgn_moves)
 	full_pgn = '\n'.join([pgn_tags, '\n'.join(pgn_moves)])
@@ -381,10 +386,3 @@ while True:
 		with open(pgn_path, 'w') as pgn_file:
 			pgn_file.write(full_pgn)
 		break
-
-
-
-
-
-
-
