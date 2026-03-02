@@ -452,16 +452,15 @@ piece_index = None
 folder = 'games'
 os.makedirs(folder, exist_ok = True)
 
-fen_file_path = folder + '/fen'
 i = 1
 while True:
-	if (os.path.exists(fen_file_path + str(i) + '.txt')):
+	fen_file_path = folder + '/fen' + str(i) + '.txt'
+	if (os.path.exists(fen_file_path)):
 		i += 1
 	else:
-		fen_file_path = fen_file_path + str(i) + '.txt'
 		with open(fen_file_path, 'w') as fen_file:
 			fen_file.write(fen)
-		break;
+		break
 
 while True:
 	window.width, window.height = window.scr.get_size()
