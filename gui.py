@@ -493,7 +493,7 @@ while True:
 						continue
 					
 					prev_fen = fen
-					fen, previous_board, turn = try_user_move(fen, previous_board, piece_index, end_index)
+					fen, previous_board, turn, game_status = try_user_move(fen, previous_board, piece_index, end_index)
 					
 					if prev_fen != fen:
 						with open(fen_file_path, 'a') as fen_file:
@@ -511,6 +511,8 @@ while True:
 
 	if game_status != 'running':
 		break
+
+end_text_surface = window.font.render(game_status, True, (255, 255, 255))
 
 while True:
 	window.width, window.height = window.scr.get_size()
