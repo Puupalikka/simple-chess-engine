@@ -331,9 +331,9 @@ while file_path == '':
 	except FileNotFoundError:
 		file_path = ''
 	
-is_threefold_repetition = False
+is_draw = False
 if fens[-1] in ['draw\n', 'draw']:
-	is_threefold_repetition = True
+	is_draw = True
 	fens = fens[:-1]
 
 moves = []
@@ -364,7 +364,7 @@ for i in range(len(fens)):
 
 pgn_moves = parse_pgn_notation(moves)
 
-if is_threefold_repetition:
+if is_draw:
 	pgn_moves[-1] = ' '.join(pgn_moves[-1].split(' ')[:-1]) + ' 1/2-1/2'
 
 if len(pgn_moves) != 0:
