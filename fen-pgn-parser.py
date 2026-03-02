@@ -372,16 +372,15 @@ print('\n\nHere is a prewiew of the pgn-file:\n\n')
 print(full_pgn)
 print()
 
-success = False
-while (not success):
-	try:
-		pgn_filename = input('filename (Note that if a file with the same name exists, it will be overwritten):\t')
-		pgn_path = 'games/' + pgn_filename
+i = 1
+while True:
+	pgn_path = 'games/pgn' + str(i) + '.txt'
+	if (os.path.exists(pgn_path)):
+		i += 1
+	else:
 		with open(pgn_path, 'w') as pgn_file:
 			pgn_file.write(full_pgn)
-			success = True
-	except IsADirectoryError:
-		pass
+		break
 
 
 
