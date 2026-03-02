@@ -27,7 +27,9 @@ class MainScreen:
 		
 		self.scr = pygame.display.set_mode((height, width), pygame.RESIZABLE)
 		pygame.display.set_caption("The Engine 1.0")
-		self.font = pygame.font.SysFont("Arial", 50)
+		self.font = pygame.font.SysFont("monospace", 100)
+		self.font_height = 100
+		self.font_width = self.font.size('A')[0]
 		
 	def get_squares(self, margin, treshold):
 		
@@ -385,6 +387,8 @@ def get_promoted_piece(turn):
 def try_user_move(fen, previous_board, piece_index, end_index):
 	
 	turn = fen.split(' ')[1]
+
+	game_status = 'running'
 	
 	previous_board = bytearray(previous_board, 'utf-8')
 	previous_board = (ctypes.c_char * len(previous_board))(*previous_board)
@@ -423,15 +427,16 @@ def try_user_move(fen, previous_board, piece_index, end_index):
 		board_chars = (ctypes.c_char * len(board_chars))(*board_chars)
 		
 		if engine.is_mate(board_chars, previous_board, ord(turn)):
-			print("mate")
+			game_status = 'mate'
 		elif engine.is_draw(board_chars, previous_board, ord(turn)):
-			print("draw")
+			'draw'
 	
 	previous_board = previous_board.value.decode('utf-8')
-	return fen, previous_board, turn
+	return fen, previous_board, turn, game_status
 
 window = MainScreen(800, 600)
 
+game_status = 'running'
 turn = "w"
 fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 previous_board = "rnbqkbnrpppppppp00000000000000000000000000000000PPPPPPPPRNBQKBNR"
@@ -503,3 +508,24 @@ while True:
 	draw_board(margin, treshold)
 	draw_pieces(fen, margin, treshold)
 	pygame.display.update()
+
+	if game_status != 'running':
+		break
+
+while True:
+	window.width, window.height = window.scr.get_size()
+	
+	for event in pygame.event.get():
+		if event.type == pygame.QUIT:
+			pygame.quit()
+			sys.exit()
+	
+	window.scr.fill((70,20,0))
+	draw_board(margin, treshold)
+	draw_pieces(fen, margin, treshold)
+	dark_overlay = pygame.Surface((window.width, window.height))
+	dark_overlay.fill((0,0,0))
+	dark_overlay.set_alpha(100)
+	window.scr.blit(dark_overlay, (0,0))
+	window.scr.blit(end_text_surface, (window.width//2 - window.font_width//2 * len(game_status), window.height//2 - window.font_height//2))
+	pygame.display.flip()
