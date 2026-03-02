@@ -452,15 +452,16 @@ piece_index = None
 folder = 'games'
 os.makedirs(folder, exist_ok = True)
 
+fen_file_path = folder + '/fen'
+i = 1
 while True:
-	try:
-		fen_file_name = input(f"name of the fen-file (Note that if there exists a file with same name in the folder {folder}, it will be overwritten):\t")
-		fen_file_path = folder + '/' + fen_file_name
+	if (os.path.exists(fen_file_path + str(i) + '.txt')):
+		i += 1
+	else:
+		fen_file_path = fen_file_path + str(i) + '.txt'
 		with open(fen_file_path, 'w') as fen_file:
 			fen_file.write(fen)
-			break;
-	except IsADirectoryError:
-		pass
+		break;
 
 while True:
 	window.width, window.height = window.scr.get_size()
