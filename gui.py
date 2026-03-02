@@ -429,7 +429,7 @@ def try_user_move(fen, previous_board, piece_index, end_index):
 		if engine.is_mate(board_chars, previous_board, ord(turn)):
 			game_status = 'mate'
 		elif engine.is_draw(board_chars, previous_board, ord(turn)):
-			game_state = 'draw'
+			game_status = 'draw'
 	
 	previous_board = previous_board.value.decode('utf-8')
 	return fen, previous_board, turn, game_status
