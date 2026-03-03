@@ -113,17 +113,21 @@ int is_any_move_left(const char* board, const char* prev_board, char turn);
 int is_mate(const char* board, const char* prev_board, char turn);
 int is_draw(const char* board, const char* prev_board, char turn);
 int is_enough_material(const char* board);
-struct Position* append_to_history(const char* board, char turn, int ep_square, int castling_queen, int castling_king, struct Position *previous);
-void free_history(struct Position *first);
 int is_3fold_rep();
+int is_ep_possible(char turn, char* board, int ep_index);
+int get_ep_index(char* fen);
+int piece_taken_or_pawn_moved(char* prev_board, char* curr_board);
+int is_50_move_rule();
+
+void free_history(struct Position *first);
 void board_from_fen(const char* fen, char* board);
 void set_castling_rights(int* castlings, char* fen);
-int is_ep_possible(char turn, char* board, int ep_index);
 void print_board(char* board);
-int get_ep_index(char* fen);
 void made_move(char* fen);
 void get_vector(int vector[2], char piece, int index);
 void modify_castlings(int* castlings, char piece);
+
+struct Position* append_to_history(const char* board, char turn, int ep_square, int castling_queen, int castling_king, struct Position *previous);
 
 // evaluating if move is legal
 void get_vector(int vector[2], char piece, int index){
@@ -952,7 +956,7 @@ int is_enough_material(const char* board){
 
 
 
-// AI and history
+// AI, history and Python interface
 void made_move(char* fen){ // doesn't call for ai's move (ai is yet to be implemented)
 	
 	char board[64];
@@ -1163,7 +1167,74 @@ void board_from_fen(const char* fen, char* board){
 	}
 }
 
+int is_50_move_rule(){
+	
+	struct Position* previous_state = &history_init;
+	struct Position* this_state = previous_state->next;
+	
+	int move_counter = 0;
+	
+	while (this_state != NULL){
+		
+		char* prev_board = previous_state -> position;
+		char* curr_board = this_state -> position;
+		
+		if (piece_taken_or_pawn_moved(prev_board, curr_board)){
+			move_counter = 0;
+		} else {
+			move_counter++;
+		}
+		
+		previous_state = this_state;
+		this_state = this_state->next;
+	}
+	
+	if (move_counter > 100){
+		return 1;
+	}
+	return 0;
+}
 
+int piece_taken_or_pawn_moved(char* prev_board, char* curr_board){
+	
+	struct ChangeInSquare change1;
+	struct ChangeInSquare change2;
+	struct ChangeInSquare change3;
+	struct ChangeInSquare change4;
+	
+	struct ChangeInSquare* changed_squares[4] = {&change1, &change2, &change3, &change4};
+	
+	for (int i = 0; i < 4; i++){
+		changed_squares[i] -> index = -1;
+	}
+	
+	for (int i = 0; i < 64; i++){
+		if (prev_board[i] != curr_board[i]){
+			for (int j = 0; j < 4; j++){
+				if (changed_squares[j] -> index == -1){
+					changed_squares[j] -> index = i;
+					changed_squares[j] -> square_start = prev_board[i];
+					changed_squares[j] -> square_end = curr_board[i];
+				}
+			}
+		}
+	}
+	
+	for (int i = 0; i < 4; i++){
+		if (changed_squares[i] -> index == -1){
+			break;
+		} else if (i == 4){
+			return 0;
+		}
+		if (changed_squares[i] -> square_end == '0' && (changed_squares[i] -> square_start == 'P' || changed_squares[i] -> square_start == 'p')){
+			return 1;
+		}
+		if (changed_squares[i] -> square_start != '0' && changed_squares[i] -> square_end != '0'){
+			return 1;
+		}
+	}
+	return 0;
+}
 
 
 // Here is some helper functions.
