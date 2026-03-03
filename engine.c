@@ -1,6 +1,5 @@
 
 /* TODO:
- * check for 50-move-rule
  * implement the actual ai
  * call for ai's move when user has moved
 */
