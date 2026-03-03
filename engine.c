@@ -68,7 +68,6 @@ struct Position {
 	int castling_king;
 	struct Position* next;
 };
-
 struct CastlingVars {
 	int white_king_rook;
 	int white_queen_rook;
@@ -78,6 +77,11 @@ struct CastlingVars {
 	int black_queen_rook;
 	int black_king;
 };
+struct ChangeInSquare {
+	int index;
+	char square_start;
+	char square_end;
+};;
 
 struct CastlingVars mov_vars = {0,0,0,0,0,0};
 
