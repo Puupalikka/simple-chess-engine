@@ -160,111 +160,55 @@ void get_vector(int vector[2], char piece, int index){
 
 int is_legal_vector(const char piece, const int vec_x, const int vec_y, const int end_x, const int end_y){
 	
-	char pieces[] = {'P','p','N','n','B','b','R','r','Q','q','K','k'};
-	
-	int piece_found = 0;
-	int len_pieces = sizeof(pieces) / sizeof(char);
-	
-	for (int i = 0; i < len_pieces; i++){
-		if (pieces[i] == piece){
-			piece_found = 1;
-			break;
-		}
-	}
-	
-	if (!piece_found){
-		printf("Move was discarded (can't find the chosen piece).\n");
-		printf("piece: %c \n", piece);
-		return 0;
-	}
-	
-	int piece_x = end_x - vec_x;
-	int piece_y = end_y - vec_y;
-	
-	if (piece_x + vec_x > 7 || piece_x + vec_x < 0 || piece_y + vec_y > 7 || piece_y + vec_y < 0) {
-		printf("Piece was tried to move out of the board.");
-		return 0;
-	}
-	
-	switch (piece) {
-		case 'p':
-			for (int i = 0; i < p_size; i++){
-				if (vec_x == black_p_vecs[i][0] && vec_y == black_p_vecs[i][1]){
-					if (vec_y == -2 && end_y != 4){
-						return 0;
-					}
-					return 1;
-				}
-			}
-			return 0;
-			break;
-			
+	int vecs_size = vector_sizes[piece];
+	int vectors[56][2];
+	switch (piece){
 		case 'P':
-			for (int i = 0; i < p_size; i++){
-				if (vec_x == white_p_vecs[i][0] && vec_y == white_p_vecs[i][1]){
-					if (vec_y == 2 && end_y != 3){
-						return 0;
-					}
-					return 1;
-				}
-			}
-			return 0;
+			memcpy(vectors, white_p_vecs, vecs_size * sizeof(int[2]));
 			break;
 			
-		case 'n':
-		case 'N':
-			for (int i = 0; i < n_size; i++){
-				if (vec_x == n_vecs[i][0] && vec_y == n_vecs[i][1]){
-					return 1;
-				}
-			}
-			return 0;
-			break;
-			
-		case 'b':
-		case 'B':
-			for (int i = 0; i < b_size; i++){
-				if (vec_x == b_vecs[i][0] && vec_y == b_vecs[i][1]){
-					return 1;
-				}
-			}
-			return 0;
-			break;
-			
-		case 'r':
-		case 'R':
-			for (int i = 0; i < r_size; i++){
-				if (vec_x == r_vecs[i][0] && vec_y == r_vecs[i][1]){
-					return 1;
-				}
-			}
-			return 0;
-			break;
-			
-		case 'q':
-		case 'Q':
-			for (int i = 0; i < q_size; i++){
-				if (vec_x == q_vecs[i][0] && vec_y == q_vecs[i][1]){
-					return 1;
-				}
-			}
-			return 0;
+		case 'p':
+			memcpy(vectors, black_p_vecs, vecs_size * sizeof(int[2]));
 			break;
 		
-		case 'k':
+		case 'N':
+		case 'n':
+			memcpy(vectors, n_vecs, vecs_size * sizeof(int[2]));
+			break;
+		
+		case 'B':
+		case 'b':
+			memcpy(vectors, b_vecs, vecs_size * sizeof(int[2]));
+			break;
+			
+		case 'R':
+		case 'r':
+			memcpy(vectors, r_vecs, vecs_size * sizeof(int[2]));
+			break;
+		
+		case 'Q':
+		case 'q':
+			memcpy(vectors, q_vecs, vecs_size * sizeof(int[2]));
+			break;
+			
 		case 'K':
-			for (int i = 0; i < k_size; i++){
-				if (vec_x == k_vecs[i][0] && vec_y == k_vecs[i][1]){
-					return 1;
-				}
-			}
-			return 0;
+		case 'k':
+			memcpy(vectors, k_vecs, vecs_size * sizeof(int[2]));
 			break;
 		
 		default:
-			printf("Piece wasn't detected.\n");
+			printf("Can't infer the piece when calculating legal vectors (returning 0).\n");
 			return 0;
 	}
+	
+	for (int i = 0; i < vecs_size; i++){
+		if ((vec_y == 2 && end_y != 3 && piece == 'P') || (vec_y == -2 && end_y != 4 && piece == 'p')){
+			return 0;
+		} else if (vec_x == vectors[i][0] && vec_y == vectors[i][1]){
+			return 1;
+		}
+	}
+	
 	return 0;
 }
 
