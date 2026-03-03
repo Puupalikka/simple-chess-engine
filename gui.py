@@ -513,6 +513,7 @@ while True:
 		if game_status == 'draw':
 			with open(fen_file_path, 'a') as fen_file:
 				fen_file.write('\ndraw')
+		engine.free_history(0)
 		break
 
 end_text_surface = window.font.render(game_status, True, (255, 255, 255))
