@@ -36,13 +36,6 @@ static const int q_vecs[][2] = {
 									};
 static const int k_vecs[][2] = {{0,1},{1,1},{1,0},{1,-1},{0,-1},{-1,-1},{-1,0},{-1,1}};
 
-static const int p_size = 4;
-static const int n_size = 8;
-static const int b_size = 28;
-static const int r_size = 28;
-static const int q_size = 56;
-static const int k_size = 8;
-
 static const int vector_sizes[115] = {
 	['K'] = 8,
 	['k'] = 8,
@@ -479,7 +472,7 @@ int is_check(const char* board, char turn){
 	}
 	
 	int vec_x, vec_y;
-	for (int i = 0; i < n_size; i++){
+	for (int i = 0; i < vector_sizes['n']; i++){
 		vec_x = n_vecs[i][0];
 		vec_y = n_vecs[i][1];
 		new_i = king_i + vec_x + 8 * vec_y;
@@ -1002,7 +995,6 @@ int is_3fold_rep(){
 	return 0;
 }
 
-
 void modify_castlings(int* castlings, char piece){
 	
 	if (piece == 'K' && castlings[0] == 0){
@@ -1037,7 +1029,6 @@ void set_castling_rights(int* castlings, char* fen){
 		modify_castlings(castlings, fen[i]);
 	}
 }
-
 
 int is_ep_possible(char turn, char* board, int ep_index){
 	if (turn == 'b'){
