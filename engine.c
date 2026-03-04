@@ -74,7 +74,7 @@ struct ChangeInSquare {
 	int index;
 	char square_start;
 	char square_end;
-};;
+};
 
 struct CastlingVars mov_vars = {0,0,0,0,0,0};
 
