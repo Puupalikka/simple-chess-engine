@@ -24,6 +24,9 @@ install: $(VENV_DIR)/bin/activate
 run: $(TARGET) install
 	$(PYTHON) gui.py
 
+run-parser: $(TARGET) install
+	$(PYTHON) fen-pgn-parser.py
+
 clean:
 	rm -f $(TARGET)
 	rm -rf $(VENV_DIR)
