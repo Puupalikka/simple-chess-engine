@@ -114,6 +114,10 @@ int is_ep_possible(char turn, char* board, int ep_index);
 int get_ep_index(char* fen);
 int piece_taken_or_pawn_moved(char* prev_board, char* curr_board);
 int is_50_move_rule();
+int get_king_index(const char* board, char turn);
+int is_check_by_sliding_piece(const char* board, int king_i, char turn);
+int is_check_by_knight_or_pawn(const char* board, int king_i, char turn);
+int is_check_by_king(const char* board, int king_i);
 
 void free_history(struct Position *first);
 void board_from_fen(const char* fen, char* board);
@@ -242,249 +246,125 @@ int ep_square(const char* prev_board, const char* curr_board){
 	}
 }
 
-int is_check(const char* board, char turn){
-	
-	int king_i = -1;
-	if (turn == 'b'){
-		for (int i = 0; i < 64; i++){
-			if (board[i] == 'k'){
-				king_i = i;
-			}
-		}
-	} else if (turn == 'w') {
-		for (int i = 0; i < 64; i++){
-			if (board[i] == 'K'){
-				king_i = i;
-			}
-		}
-	}
-	
-	if (king_i == -1){
-		printf("Could not find the king when calculating checks (returning 0).\n");
-		return 0;
-	}
-	
-	int new_i;
+int is_check_by_sliding_piece(const char* board, int king_i, char turn){
 	
 	static const int vec_up = -8;
 	static const int vec_upright = -7;
 	static const int vec_upleft = -9;
 	static const int vec_right = 1;
 	
+	int new_i;
+	
 	for (int i = 1; i < 8; i++){
-		
 		if (king_i%8 == 7 || king_i/8 == 0){
 			break;
 		}
-		
 		new_i = king_i + vec_upright * i;
-		if (new_i%8 == 7 || new_i/8 == 0){
-			if ((board[new_i] == 'b' || board[new_i] == 'q') && turn == 'w'){
-				return 1;
-			} else if ((board[new_i] == 'B' || board[new_i] == 'Q') && turn == 'b'){
-				return 1;
-			}
-			break;
+		if (((board[new_i] == 'b' || board[new_i] == 'q') && turn == 'w') || ((board[new_i] == 'B' || board[new_i] == 'Q') && turn == 'b')){
+			return 1;
 		}
-		
-		if ((board[new_i] == 'b' || board[new_i] == 'q') && turn == 'w'){
-			return 1;
-		} else if ((board[new_i] == 'B' || board[new_i] == 'Q') && turn == 'b'){
-			return 1;
-		} else if (board[new_i] != '0'){
+		if (new_i%8 == 7 || new_i/8 == 0 || board[new_i] != '0'){
 			break;
 		}
 	}
 	
 	for (int i = 1; i < 8; i++){
-		
 		if (king_i%8 == 0 || king_i/8 == 0){
 			break;
 		}
-		
 		new_i = king_i + vec_upleft * i;
-		if (new_i%8 == 0 || new_i/8 == 0){
-			if ((board[new_i] == 'b' || board[new_i] == 'q') && turn == 'w'){
-				return 1;
-			} else if ((board[new_i] == 'B' || board[new_i] == 'Q') && turn == 'b'){
-				return 1;
-			}
-			break;
-		}
-		
-		if ((board[new_i] == 'b' || board[new_i] == 'q') && turn == 'w'){
+		if (((board[new_i] == 'b' || board[new_i] == 'q') && turn == 'w') || ((board[new_i] == 'B' || board[new_i] == 'Q') && turn == 'b')){
 			return 1;
-		} else if ((board[new_i] == 'B' || board[new_i] == 'Q') && turn == 'b'){
-			return 1;
-		} else if (board[new_i] != '0'){
+		} else if (new_i%8 == 0 || new_i/8 == 0 || board[new_i] != '0'){
 			break;
 		}
 	}
 	
 	for (int i = -1; i > -8; i--){
-		
 		if (king_i%8 == 0 || king_i/8 == 7){
 			break;
 		}
-		
 		new_i = king_i + vec_upright * i;
-		if (new_i%8 == 0 || new_i/8 == 7){
-			if ((board[new_i] == 'b' || board[new_i] == 'q') && turn == 'w'){
-				return 1;
-			} else if ((board[new_i] == 'B' || board[new_i] == 'Q') && turn == 'b'){
-				return 1;
-			}
-			break;
-		}
-		
-		if ((board[new_i] == 'b' || board[new_i] == 'q') && turn == 'w'){
+		if (((board[new_i] == 'b' || board[new_i] == 'q') && turn == 'w') || ((board[new_i] == 'B' || board[new_i] == 'Q') && turn == 'b')){
 			return 1;
-		} else if ((board[new_i] == 'B' || board[new_i] == 'Q') && turn == 'b'){
-			return 1;
-		} else if (board[new_i] != '0'){
+		} else if (new_i%8 == 0 || new_i/8 == 7 || board[new_i] != '0'){
 			break;
 		}
 	}
 	
 	for (int i = -1; i > -8; i--){
-		
 		if (king_i%8 == 7 || king_i/8 == 7){
 			break;
 		}
-		
 		new_i = king_i + vec_upleft * i;
-		if (new_i%8 == 7 || new_i/8 == 7){
-			if ((board[new_i] == 'b' || board[new_i] == 'q') && turn == 'w'){
-				return 1;
-			} else if ((board[new_i] == 'B' || board[new_i] == 'Q') && turn == 'b'){
-				return 1;
-			}
-			break;
-		}
-		
-		if ((board[new_i] == 'b' || board[new_i] == 'q') && turn == 'w'){
+		if (((board[new_i] == 'b' || board[new_i] == 'q') && turn == 'w') || ((board[new_i] == 'B' || board[new_i] == 'Q') && turn == 'b')){
 			return 1;
-		} else if ((board[new_i] == 'B' || board[new_i] == 'Q') && turn == 'b'){
-			return 1;
-		} else if (board[new_i] != '0'){
+		} else if (new_i%8 == 7 || new_i/8 == 7 || board[new_i] != '0'){
 			break;
 		}
 	}
 	
 	for (int i = 1; i < 8; i++){
-		
 		if (king_i/8 == 0){
 			break;
 		}
-		
 		new_i = king_i + vec_up * i;
-		if (new_i/8 == 0){
-			if ((board[new_i] == 'r' || board[new_i] == 'q') && turn == 'w'){
-				return 1;
-			} else if ((board[new_i] == 'R' || board[new_i] == 'Q') && turn == 'b'){
-				return 1;
-			}
-			break;
-		}
-		
-		if ((board[new_i] == 'r' || board[new_i] == 'q') && turn == 'w'){
+		if (((board[new_i] == 'r' || board[new_i] == 'q') && turn == 'w') || ((board[new_i] == 'R' || board[new_i] == 'Q') && turn == 'b')){
 			return 1;
-		} else if ((board[new_i] == 'R' || board[new_i] == 'Q') && turn == 'b'){
-			return 1;
-		} else if (board[new_i] != '0'){
+		} else if (new_i/8 == 0 || board[new_i] != '0'){
 			break;
 		}
 	}
 	
 	for (int i = 1; i < 8; i++){
-		
 		if (king_i%8 == 7){
 			break;
 		}
-		
 		new_i = king_i + vec_right * i;
-		if (new_i%8 == 7){
-			if ((board[new_i] == 'r' || board[new_i] == 'q') && turn == 'w'){
-				return 1;
-			} else if ((board[new_i] == 'R' || board[new_i] == 'Q') && turn == 'b'){
-				return 1;
-			}
-			break;
-		}
-		
-		if ((board[new_i] == 'r' || board[new_i] == 'q') && turn == 'w'){
+		if (((board[new_i] == 'r' || board[new_i] == 'q') && turn == 'w') || ((board[new_i] == 'R' || board[new_i] == 'Q') && turn == 'b')){
 			return 1;
-		} else if ((board[new_i] == 'R' || board[new_i] == 'Q') && turn == 'b'){
-			return 1;
-		} else if (board[new_i] != '0'){
+		} else if (new_i%8 == 7 || board[new_i] != '0'){
 			break;
 		}
 	}
 	
 	for (int i = -1; i > -8; i--){
-		
 		if (king_i/8 == 7){
 			break;
 		}
-		
 		new_i = king_i + vec_up * i;
-		if (new_i/8 == 7){
-			if ((board[new_i] == 'r' || board[new_i] == 'q') && turn == 'w'){
-				return 1;
-			} else if ((board[new_i] == 'R' || board[new_i] == 'Q') && turn == 'b'){
-				return 1;
-			}
-			break;
-		}
-		
-		if ((board[new_i] == 'r' || board[new_i] == 'q') && turn == 'w'){
+		if (((board[new_i] == 'r' || board[new_i] == 'q') && turn == 'w') || ((board[new_i] == 'R' || board[new_i] == 'Q') && turn == 'b')){
 			return 1;
-		} else if ((board[new_i] == 'R' || board[new_i] == 'Q') && turn == 'b'){
-			return 1;
-		} else if (board[new_i] != '0'){
+		} else if (new_i/8 == 7 || board[new_i] != '0'){
 			break;
 		}
 	}
 
 	for (int i = -1; i > -8; i--){
-		
 		if (king_i%8 == 0){
 			break;
 		}
-		
 		new_i = king_i + vec_right * i;
-		if (new_i%8 == 0){
-			if ((board[new_i] == 'r' || board[new_i] == 'q') && turn == 'w'){
-				return 1;
-			} else if ((board[new_i] == 'R' || board[new_i] == 'Q') && turn == 'b'){
-				return 1;
-			}
-			break;
-		}
-		
-		if ((board[new_i] == 'r' || board[new_i] == 'q') && turn == 'w'){
+		if (((board[new_i] == 'r' || board[new_i] == 'q') && turn == 'w') || ((board[new_i] == 'R' || board[new_i] == 'Q') && turn == 'b')){
 			return 1;
-		} else if ((board[new_i] == 'R' || board[new_i] == 'Q') && turn == 'b'){
-			return 1;
-		} else if (board[new_i] != '0'){
+		} else if (new_i%8 == 0 || board[new_i] != '0'){
 			break;
 		}
 	}
+	return 0;
+}
+
+int is_check_by_knight_or_pawn(const char* board, int king_i, char turn){
 	
 	int vec_x, vec_y;
 	for (int i = 0; i < vector_sizes['n']; i++){
 		vec_x = n_vecs[i][0];
 		vec_y = n_vecs[i][1];
-		new_i = king_i + vec_x + 8 * vec_y;
-		
+		int new_i = king_i + vec_x + 8 * vec_y;
 		if (new_i < 0 || new_i > 63){
 			continue;
 		}
-		
-		if (board[new_i] == 'n' && turn == 'w'){
-			return 1;
-		}
-		if (board[new_i] == 'N' && turn == 'b'){
+		if ((board[new_i] == 'n' && turn == 'w') || (board[new_i] == 'N' && turn == 'b')){
 			return 1;
 		}
 	}
@@ -497,10 +377,16 @@ int is_check(const char* board, char turn){
 		if ((board[king_i + 8 + 1] == 'P' && king_i%8 != 7) || (board[king_i + 8 - 1] == 'P' && king_i%8 != 0)){
 			return 1;
 		}
-	} else {
-		printf("Invalid turn detected when computing checks caused by pawn (returning false); turn: %c\n", turn);
-		return 0;
 	}
+	return 0;
+}
+
+int is_check_by_king(const char* board, int king_i){
+	
+	static const int vec_up = -8;
+	static const int vec_upright = -7;
+	static const int vec_upleft = -9;
+	static const int vec_right = 1;
 	
 	int king_moves[] = {king_i+vec_upleft, king_i+vec_up, king_i+vec_upright, king_i+vec_right, king_i-vec_upleft, king_i-vec_up, king_i-vec_upright, king_i-vec_right};
 	
@@ -520,6 +406,55 @@ int is_check(const char* board, char turn){
 			return 1;
 		}
 	}
+	return 0;
+}
+
+int get_king_index(const char* board, char turn){
+	
+	int king_i;
+	
+	if (turn == 'b'){
+		for (int i = 0; i < 64; i++){
+			if (board[i] == 'k'){
+				king_i = i;
+			}
+		}
+		
+	} else if (turn == 'w') {
+		for (int i = 0; i < 64; i++){
+			if (board[i] == 'K'){
+				king_i = i;
+			}
+		}
+	}
+	
+	if (king_i == -1){
+		printf("Could not find the king when calculating checks (returning 0).\n");
+		return -1;
+	}
+	
+	return king_i;
+}
+
+int is_check(const char* board, char turn){
+	
+	int king_i = get_king_index(board, turn);
+	if (king_i == -1){
+		return 0;
+	}
+	
+	if (is_check_by_sliding_piece(board, king_i, turn)){
+		return 1;
+	}
+	
+	if (is_check_by_knight_or_pawn(board, king_i, turn)){
+		return 1;
+	}
+	
+	if (is_check_by_king(board, king_i)){
+		return 1;
+	}
+	
 	
 	return 0;
 }
@@ -753,26 +688,20 @@ int is_castling_legal(struct CastlingVars mov_vars, const char* board, char turn
 
 int is_legal_move(const char* board, const char piece, const int vec_x, const int vec_y, const int end_x, const int end_y, const char* prev_board){
 	if (is_basic_move_legal(board, piece, vec_x, vec_y, end_x, end_y, prev_board)){
-		
 		if (piece == 'k'){
 			mov_vars.black_king = 1;
-			
 		} else if (piece == 'K'){
 			mov_vars.white_king = 1;
-			
 		} else if (piece == 'r' || piece == 'R'){
-			
 			int start_x = end_x - vec_x;
 			int start_y = end_y - vec_y;
 			int start_i = start_x + start_y*8;
-			
 			if (piece == 'r'){
 				if (start_i == 0){
 					mov_vars.black_queen_rook = 1;
 				} else if (start_i == 7){
 					mov_vars.black_king_rook = 1;
 				}
-				
 			} else if (piece == 'R'){
 				if (start_i == 56){
 					mov_vars.white_queen_rook = 1;
@@ -781,23 +710,17 @@ int is_legal_move(const char* board, const char piece, const int vec_x, const in
 				}
 			}
 		}
-		
 		return 1;
-		
 	} else {
-		
 		if ((piece == 'k' || piece == 'K') && vec_y == 0 && (vec_x == 2 || vec_x == -2)){
-			
 			char turn = islower(piece) ? 'b' : 'w';
 			char side = (vec_x == 2) ? 'k' : 'q';
-			
 			if (is_castling_legal(mov_vars, board, turn, side)){
 				if (turn == 'b'){
 					mov_vars.black_king = 1;
 				} else {
 					mov_vars.white_king = 1;
 				}
-				
 				return 1;
 			}
 		}
