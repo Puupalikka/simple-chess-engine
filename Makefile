@@ -20,7 +20,7 @@ $(TARGET): engine.c
 
 install: $(VENV_DIR)/bin/activate
 	$(PIP) install -r requirements.txt
-	venv/bin/python -m PyInstaller --add-binary "engine.so:." --add-data "images:images" --onefile --windowed gui.py
+	venv/bin/python -m PyInstaller --add-binaryrm -rf build dist *.spec "engine.so:." --add-data "images:images" --onefile --windowed gui.py
 
 run: $(TARGET) install
 	$(PYTHON) gui.py
@@ -31,3 +31,4 @@ run-parser: $(TARGET) install
 clean:
 	rm -f $(TARGET)
 	rm -rf $(VENV_DIR)
+	rm -rf build dist *.spec
