@@ -1,5 +1,5 @@
 # simple-chess-engine
-## simple and modifiable chess engine and gui for game analysis 
+simple and modifiable chess engine and gui for game analysis 
 
 CURRENTLY THE ENGINE IS NOT READY FOR USE.
 
