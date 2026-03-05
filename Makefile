@@ -20,10 +20,10 @@ $(TARGET): engine.c
 
 install: $(VENV_DIR)/bin/activate
 	$(PIP) install -r requirements.txt
-	venv/bin/python -m PyInstaller --add-binaryrm -rf build dist *.spec "engine.so:." --add-data "images:images" --onefile --windowed gui.py
+	venv/bin/python -m PyInstaller --add-binaryrm -rf build dist *.spec "engine.so:." --add-data "images:images" --onefile --windowed --distpath dist gui.py
 
 run: $(TARGET) install
-	$(PYTHON) gui.py
+	dist/gui
 
 run-parser: $(TARGET) install
 	$(PYTHON) fen-pgn-parser.py
