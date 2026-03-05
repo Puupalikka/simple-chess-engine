@@ -47,18 +47,24 @@ class MainScreen:
 		return squares
 
 def import_images():
-	P0 = pygame.image.load("images/p0.png").convert_alpha()
-	P1 = pygame.image.load("images/p1.png").convert_alpha()
-	N0 = pygame.image.load("images/N0.png").convert_alpha()
-	N1 = pygame.image.load("images/N1.png").convert_alpha()
-	B0 = pygame.image.load("images/B0.png").convert_alpha()
-	B1 = pygame.image.load("images/B1.png").convert_alpha()
-	R0 = pygame.image.load("images/R0.png").convert_alpha()
-	R1 = pygame.image.load("images/R1.png").convert_alpha()
-	Q0 = pygame.image.load("images/Q0.png").convert_alpha()
-	Q1 = pygame.image.load("images/Q1.png").convert_alpha()
-	K0 = pygame.image.load("images/K0.png").convert_alpha()
-	K1 = pygame.image.load("images/K1.png").convert_alpha()
+	
+	if getattr(sys, "frozen", False):
+		path = sys._MEIPASS + '/'
+	else:
+		path = ''
+	
+	P0 = pygame.image.load(path + "images/p0.png").convert_alpha()
+	P1 = pygame.image.load(path + "images/p1.png").convert_alpha()
+	N0 = pygame.image.load(path + "images/N0.png").convert_alpha()
+	N1 = pygame.image.load(path + "images/N1.png").convert_alpha()
+	B0 = pygame.image.load(path + "images/B0.png").convert_alpha()
+	B1 = pygame.image.load(path + "images/B1.png").convert_alpha()
+	R0 = pygame.image.load(path + "images/R0.png").convert_alpha()
+	R1 = pygame.image.load(path + "images/R1.png").convert_alpha()
+	Q0 = pygame.image.load(path + "images/Q0.png").convert_alpha()
+	Q1 = pygame.image.load(path + "images/Q1.png").convert_alpha()
+	K0 = pygame.image.load(path + "images/K0.png").convert_alpha()
+	K1 = pygame.image.load(path + "images/K1.png").convert_alpha()
 	
 	images_by_name = {"P": P0,
 						"p": P1,
@@ -319,16 +325,21 @@ def get_color_by_index(index, fen):
 
 def get_promoted_piece(turn):
 	
-	if turn == 'w':
-		n = pygame.image.load("images/N0.png").convert_alpha()
-		b = pygame.image.load("images/B0.png").convert_alpha()
-		r = pygame.image.load("images/R0.png").convert_alpha()
-		q = pygame.image.load("images/Q0.png").convert_alpha()
+	if getattr(sys, "frozen", False):
+		path = sys._MEIPASS + '/'
 	else:
-		n = pygame.image.load("images/N1.png").convert_alpha()
-		b = pygame.image.load("images/B1.png").convert_alpha()
-		r = pygame.image.load("images/R1.png").convert_alpha()
-		q = pygame.image.load("images/Q1.png").convert_alpha()
+		path = ''
+	
+	if turn == 'w':
+		n = pygame.image.load(path + "images/N0.png").convert_alpha()
+		b = pygame.image.load(path + "images/B0.png").convert_alpha()
+		r = pygame.image.load(path + "images/R0.png").convert_alpha()
+		q = pygame.image.load(path + "images/Q0.png").convert_alpha()
+	else:
+		n = pygame.image.load(path + "images/N1.png").convert_alpha()
+		b = pygame.image.load(path + "images/B1.png").convert_alpha()
+		r = pygame.image.load(path + "images/R1.png").convert_alpha()
+		q = pygame.image.load(path + "images/Q1.png").convert_alpha()
 	
 	pieces = [n, b, r, q]
 	piece_locations = []
