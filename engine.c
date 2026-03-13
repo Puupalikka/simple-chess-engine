@@ -1,8 +1,4 @@
 
-/* TODO:
- * implement the actual ai
- * call for ai's move when user has moved
-*/
 
 #include <stdio.h>
 #include <string.h>
@@ -49,6 +45,21 @@ static const int vector_sizes[115] = {
 	['n'] = 8,
 	['P'] = 4,
 	['p'] = 4
+	};
+static const int piece_values[115] = {
+	['K'] = 3,
+	['k'] = -3,
+	['Q'] = 9,
+	['q'] = -9,
+	['R'] = 5,
+	['r'] = -5,
+	['B'] = 3,
+	['b'] = -3,
+	['N'] = 3,
+	['n'] = -3,
+	['P'] = 1,
+	['p'] = -1,
+	['0'] = 0
 	};
 
 struct Position {
@@ -118,6 +129,10 @@ int get_king_index(const char* board, char turn);
 int is_check_by_sliding_piece(const char* board, int king_i, char turn);
 int is_check_by_knight_or_pawn(const char* board, int king_i, char turn);
 int is_check_by_king(const char* board, int king_i);
+int get_taken_piece_index(const char* board, const char* prev_board, char piece, int end_x, int end_y);
+int get_who_castled(char piece, int vec_x, int vec_y);
+int search(const char* board, const char* prev_board, struct CastlingVars castling_vars, char turn, int depth);
+int evaluate(const char board[64]);
 
 void free_history(struct Position *first);
 void board_from_fen(const char* fen, char* board);
@@ -126,8 +141,27 @@ void print_board(char* board);
 void made_move(char* fen);
 void get_vector(int vector[2], char piece, int index);
 void modify_castlings(int* castlings, char piece);
+void get_all_legal_moves(const char* board, const char* prev_board, char turn, unsigned int all_legal_moves[256]);
+void decode_move(int move, int decoded_move[4]);
+void get_best_move(const char* board, const char* prev_board, char turn, int depth, int best_move[4]);
+void make_move(char board[64], int curr_move[4]);
+void update_mov_vars(char piece, int end_x, int end_y, int vec_x, int vec_y);
+void get_move(char board1[64], char board2[64], int move[4]);
 
 struct Position* append_to_history(const char* board, char turn, int ep_square, int castling_queen, int castling_king, struct Position *previous);
+
+
+// Here is some helper functions.
+void print_board(char* board){
+	printf("\nBOARD:\n");
+	for (int y = 7; y >= 0; y--){
+		for (int x = 0; x < 8; x++){
+			printf("%c", board[(7-y)*8+x]);
+		}
+		printf("\n");
+	}
+}
+
 
 // evaluating if move is legal
 void get_vector(int vector[2], char piece, int index){
@@ -157,7 +191,7 @@ void get_vector(int vector[2], char piece, int index){
 
 int is_legal_vector(const char piece, const int vec_x, const int vec_y, const int end_x, const int end_y){
 	
-	int vecs_size = vector_sizes[piece];
+	int vecs_size = vector_sizes[(int) piece];
 	int vectors[56][2];
 	switch (piece){
 		case 'P':
@@ -229,7 +263,6 @@ int ep_square(const char* prev_board, const char* curr_board){
 	}
 	
 	if (previous_piece == '0'){
-		printf("Previous move wasn't detected while checking for rights to perform en passant (returning false).\n");
 		return -1;
 	}
 	
@@ -688,39 +721,12 @@ int is_castling_legal(struct CastlingVars mov_vars, const char* board, char turn
 
 int is_legal_move(const char* board, const char piece, const int vec_x, const int vec_y, const int end_x, const int end_y, const char* prev_board){
 	if (is_basic_move_legal(board, piece, vec_x, vec_y, end_x, end_y, prev_board)){
-		if (piece == 'k'){
-			mov_vars.black_king = 1;
-		} else if (piece == 'K'){
-			mov_vars.white_king = 1;
-		} else if (piece == 'r' || piece == 'R'){
-			int start_x = end_x - vec_x;
-			int start_y = end_y - vec_y;
-			int start_i = start_x + start_y*8;
-			if (piece == 'r'){
-				if (start_i == 0){
-					mov_vars.black_queen_rook = 1;
-				} else if (start_i == 7){
-					mov_vars.black_king_rook = 1;
-				}
-			} else if (piece == 'R'){
-				if (start_i == 56){
-					mov_vars.white_queen_rook = 1;
-				} else if (start_i == 63){
-					mov_vars.white_king_rook = 1;
-				}
-			}
-		}
 		return 1;
 	} else {
-		if ((piece == 'k' || piece == 'K') && vec_y == 0 && (vec_x == 2 || vec_x == -2)){
+		if ((piece == 'k' || piece == 'K') && vec_y == 0 && (vec_x == 2 || vec_x == -2) && is_castling_legal(mov_vars, board, isupper(piece) ? 'w' : 'b', (vec_x > 0) ? 'k' : 'q')){
 			char turn = islower(piece) ? 'b' : 'w';
 			char side = (vec_x == 2) ? 'k' : 'q';
 			if (is_castling_legal(mov_vars, board, turn, side)){
-				if (turn == 'b'){
-					mov_vars.black_king = 1;
-				} else {
-					mov_vars.white_king = 1;
-				}
 				return 1;
 			}
 		}
@@ -740,7 +746,7 @@ int is_any_move_left(const char* board, const char* prev_board, char turn){
 		int start_x = i%8;
 		int start_y = 7-i/8;
 		
-		int vecs_size = vector_sizes[piece];
+		int vecs_size = vector_sizes[(int) piece];
 		for (int j = 0; j < vecs_size; j++){
 			
 			int vector[2];
@@ -817,13 +823,52 @@ int is_enough_material(const char* board){
 	return 1;
 }
 
+void update_mov_vars(char piece, int end_x, int end_y, int vec_x, int vec_y){
+	
+	if (piece == 'k'){
+		mov_vars.black_king = 1;
+	} else if (piece == 'K'){
+		mov_vars.white_king = 1;
+	} else if (piece == 'r' || piece == 'R'){
+		int start_x = end_x - vec_x;
+		int start_y = end_y - vec_y;
+		int start_i = start_x + start_y*8;
+		if (piece == 'r'){
+			if (start_i == 0){
+				mov_vars.black_queen_rook = 1;
+			} else if (start_i == 7){
+				mov_vars.black_king_rook = 1;
+			}
+		} else if (piece == 'R'){
+			if (start_i == 56){
+				mov_vars.white_queen_rook = 1;
+			} else if (start_i == 63){
+				mov_vars.white_king_rook = 1;
+			}
+		}
+	}
+}
 
 
 // AI, history and Python interface
-void made_move(char* fen){ // doesn't call for ai's move (ai is yet to be implemented)
+void made_move(char* fen){ // doesn't call for the ai's move (ai is yet to be implemented)
 	
 	char board[64];
 	board_from_fen(fen, board);
+	
+	char prev_board[64];
+	memcpy(prev_board, history_end -> position, 64);
+	
+	int move[4];
+	get_move(prev_board, board, move);
+	
+	int end_x = move[2];
+	int end_y = move[3];
+	int vec_x = end_x - move[0];
+	int vec_y = end_y - move[1];
+	char piece = board[(8-end_y)*8+end_x];
+	
+	update_mov_vars(piece, end_x, end_y, vec_x, vec_y);
 	
 	char turn = '-';
 	int ep_index = -1;
@@ -1097,34 +1142,320 @@ int piece_taken_or_pawn_moved(char* prev_board, char* curr_board){
 	return 0;
 }
 
+int get_who_castled(char piece, int vec_x, int vec_y){
+	int castling;
+	if ((piece != 'k' && piece != 'K') || vec_y != 0 || (vec_x != 2 && vec_x != -2)){
+		castling = 0;
+	} else if (piece == 'K' && vec_x == 2){
+		castling = 1;
+	} else if (piece == 'K' && vec_x == -2){
+		castling = 2;
+	} else if (piece == 'k' && vec_x == 2){
+		castling = 3;
+	} else if (piece == 'k' && vec_x == -2){
+		castling = 4;
+	}
+	return castling;
+}
 
-// Here is some helper functions.
-void print_board(char* board){
-	printf("\nBOARD:\n");
-	for (int y = 7; y >= 0; y--){
-		for (int x = 0; x < 8; x++){
-			printf("%c", board[(7-y)*8+x]);
+int get_taken_piece_index(const char* board, const char* prev_board, char piece, int end_x, int end_y){
+	int taken_piece_index = (7-end_y)*8 + end_x;
+	int ep_index = ep_square(prev_board, board);
+	if ((piece == 'p' || piece == 'P') && (7-end_y)*8 + end_x == ep_index){
+		if (piece == 'p'){
+			taken_piece_index = (7-end_y-1)*8 + end_x;
+		} else {
+			taken_piece_index = (7-end_y+1)*8 + end_x;
 		}
-		printf("\n");
+	}
+	return taken_piece_index;
+}
+
+void decode_move(int move, int decoded_move[4]){
+	int start_i = (move >> 15) & 0x3F;
+	int end_i = (move >> 9) & 0x3F;
+	int taken_i = (move >> 3) & 0x3F;
+	int castling = move & 7;
+	
+	decoded_move[0] = start_i;
+	decoded_move[1] = end_i;
+	decoded_move[2] = taken_i;
+	decoded_move[3] = castling;
+}
+
+void make_move(char board[64], int curr_move[4]){
+	int start_i = curr_move[0];
+	int end_i = curr_move[1];
+	int taken_i = curr_move[2];
+	int castled = curr_move[3];
+	
+	if (castled != 0){
+		if (castled == 1 || castled == 3){
+			board[taken_i] = '0';
+			board[end_i] = board[start_i];
+			board[start_i] = '0';
+			board[end_i - 1] = board[end_i + 1];
+			board[end_i + 1] = '0';
+		} else {
+			board[taken_i] = '0';
+			board[end_i] = board[start_i];
+			board[start_i] = '0';
+			board[end_i - 1] = board[end_i + 2];
+			board[end_i + 2] = '0';
+		}
+	} else {
+		board[taken_i] = '0';
+		board[end_i] = board[start_i];
+		board[start_i] = '0';
+	}
+}
+
+int evaluate(const char board[64]){
+	int piece_value_sum = 0;
+	for (int i = 0; i < 64; i++){
+		char piece = board[i];
+		piece_value_sum += piece_values[(int) piece];
+	}
+	return piece_value_sum;
+}
+
+int search(const char* board, const char* prev_board, struct CastlingVars castling_vars, char turn, int depth){
+	
+	if (depth == 0){
+		return evaluate(board);
+	}
+	
+	unsigned int all_legal_moves[256] = {0};
+	get_all_legal_moves(board, prev_board, turn, all_legal_moves);
+	int best_value = 0;
+	
+	for (int i = 0; all_legal_moves[i] != 0; i++){
+		
+		struct CastlingVars new_castling_vars = {
+			.white_king_rook = castling_vars.white_king_rook,
+			.white_queen_rook = castling_vars.white_queen_rook,
+			.white_king = castling_vars.white_king,
+			
+			.black_king_rook = castling_vars.black_king_rook,
+			.black_queen_rook = castling_vars.black_queen_rook,
+			.black_king = castling_vars.black_king
+		};
+		
+		int move = all_legal_moves[i];
+		int decoded_move[4] = {0};
+		char new_board[64];
+		decode_move(move, decoded_move);
+		memcpy(new_board, board, 64);
+		make_move(new_board, decoded_move);
+		
+		char piece = new_board[decoded_move[1]];
+		
+		if (piece == 'k'){
+			new_castling_vars.black_king = 1;
+		} else if (piece == 'K'){
+			new_castling_vars.white_king = 1;
+		} else if (piece == 'r' || piece == 'R'){
+			int start_i = decoded_move[0];
+			if (piece == 'r'){
+				if (start_i == 0){
+					new_castling_vars.black_queen_rook = 1;
+				} else if (start_i == 7){
+					new_castling_vars.black_king_rook = 1;
+				}
+			} else if (piece == 'R'){
+				if (start_i == 56){
+					new_castling_vars.white_queen_rook = 1;
+				} else if (start_i == 63){
+					new_castling_vars.white_king_rook = 1;
+				}
+			}
+		}
+		
+		int value = search(new_board, board, new_castling_vars, turn == 'w' ? 'b' : 'w', depth - 1);
+		best_value = value > best_value ? value : best_value;
+	}
+	return best_value;
+}
+
+void get_move(char board1[64], char board2[64], int move[4]){
+	struct ChangeInSquare changes_in_board[5];
+	int n = 0;
+	
+	for (int i = 0; i < 64; i++){
+		if (board1[i] != board2[i]){
+			changes_in_board[n].index = i;
+			changes_in_board[n].square_start = board1[i];
+			changes_in_board[n].square_end = board2[i];
+			n++;
+		}
+	}
+	
+	int start_i;
+	int end_i;
+	
+	switch (n){
+		case 4: // castling
+			for (int i = 0; i < n; i++){
+				struct ChangeInSquare square = changes_in_board[i];
+				if (square.square_start == 'k' || square.square_start == 'K'){
+					start_i = square.index;
+				} else if (square.square_end == 'k' || square.square_end == 'K'){
+					end_i = square.index;
+				}
+			}
+			break;
+		case 3: // en pass.
+			for (int i = 0; i < n; i++){
+				struct ChangeInSquare square = changes_in_board[i];
+				if (square.square_start == 'p' || square.square_start == 'P'){
+					start_i = square.index;
+				} else if (square.square_end == 'p' || square.square_end == 'P'){
+					end_i = square.index;
+				}
+			}
+			break;
+		case 2: // normal
+			struct ChangeInSquare square1 = changes_in_board[0];
+			struct ChangeInSquare square2 = changes_in_board[1];
+			
+			if (square1.square_end == '0'){
+				start_i = square1.index;
+				end_i = square2.index;
+			} else {
+				start_i = square2.index;
+				end_i = square1.index;
+			}
+			break;
+	}
+	
+	move[0] = start_i%8, move[1] = 8 - start_i/8;
+	move[2] = end_i%8, move[3] = 8 - end_i/8;
+}
+
+void get_all_legal_moves(const char* board, const char* prev_board, char turn, unsigned int all_legal_moves[256]){
+	int moves = 0;
+	for (int i = 0; i < 64; i++){
+		
+		char piece = board[i];
+		if (piece == '0' || (islower(piece) && (turn != 'b')) || (isupper(piece) && (turn != 'w'))){
+			continue;
+		}
+		
+		int vector[2];
+		int vector_amount = vector_sizes[(int) piece];
+		
+		for (int j = 0; j < vector_amount; j++){
+			get_vector(vector, piece, j);
+			
+			const int start_x = i%8;
+			const int start_y = 7-i/8;
+			const int vec_x = vector[0];
+			const int vec_y = vector[1];
+			const int end_x = start_x + vec_x;
+			const int end_y = start_y + vec_y;
+			
+			if (!is_legal_move(board, piece, vec_x, vec_y, end_x, end_y, prev_board)){
+				continue;
+			}
+			
+			moves++;
+			
+			int taken_piece_index = get_taken_piece_index(board, prev_board, piece, end_x, end_y);
+			int castling = get_who_castled(piece, vec_x, vec_y);
+			
+			int move = i << 15 | ((7-end_y)*8 + end_x) << 9 | taken_piece_index << 3 | castling;
+			all_legal_moves[moves-1] = move;
+		}
+	}
+}
+
+void get_best_move(const char* board, const char* prev_board, char turn, int depth, int best_move[4]){
+	
+	int best_value = 0;
+	unsigned int all_legal_moves[256] = {0};
+	get_all_legal_moves(board, prev_board, turn, all_legal_moves);
+	unsigned int move = all_legal_moves[0]; // This can be randomised to achieve random-looking/unpredictable moves
+	decode_move(move, best_move);
+	
+	for (int i = 0; all_legal_moves[i] != 0; i++){
+		unsigned int move = all_legal_moves[i];
+		
+		int curr_move[4];
+		char new_board[64];
+		decode_move(move, curr_move);
+		
+		memcpy(new_board, board, 64);
+		make_move(new_board, curr_move);
+		int value = search(new_board, board, mov_vars, turn == 'w' ? 'b' : 'w', depth-1);
+		
+		if (value > best_value && turn == 'w'){
+			best_value = value;
+			decode_move(move, best_move);
+		} else if (value < best_value && turn == 'b'){
+			best_value = value;
+			decode_move(move, best_move);
+		}
 	}
 }
 
 
 
 
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

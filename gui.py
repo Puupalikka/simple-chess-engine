@@ -19,6 +19,13 @@ engine.is_mate.restype = ctypes.c_int
 
 engine.made_move.argtypes = [ctypes.POINTER(ctypes.c_char)]
 
+# engine.get_all_legal_moves.argtypes = [ctypes.POINTER(ctypes.c_char), ctypes.POINTER(ctypes.c_char), ctypes.c_char, ctypes.POINTER(ctypes.c_int)]
+# engine.get_all_legal_moves.restype = ctypes.c_int
+
+# engine.decode_move.argtypes = [ctypes.c_char, ctypes.POINTER(ctypes.c_int)]
+
+engine.get_best_move.argtypes = [ctypes.POINTER(ctypes.c_char), ctypes.POINTER(ctypes.c_char), ctypes.c_char, ctypes.c_int, ctypes.POINTER(ctypes.c_int)]
+
 
 class MainScreen:
 	def __init__(self, height, width):
@@ -437,6 +444,17 @@ def try_user_move(fen, previous_board, piece_index, end_index):
 		board_chars = bytearray([ord(str(square)) for square in board])
 		board_chars = (ctypes.c_char * len(board_chars))(*board_chars)
 		
+		###############################################################
+		
+		best_move = [0] * 4
+		best_move = (ctypes.c_int * len(best_move))(*best_move)
+		
+		engine.get_best_move(board_chars, previous_board, ord(turn), 1, best_move)
+		
+		print(f" start_i: {best_move[0]}, end_i: {best_move[1]}, taken:i {best_move[2]}, castler: {best_move[3]}")
+		
+		###############################################################
+		
 		if engine.is_mate(board_chars, previous_board, ord(turn)):
 			game_status = 'mate'
 		elif engine.is_draw(board_chars, previous_board, ord(turn)) or engine.is_50_move_rule():
@@ -546,3 +564,4 @@ while True:
 	window.scr.blit(dark_overlay, (0,0))
 	window.scr.blit(end_text_surface, (window.width//2 - window.font_width//2 * len(game_status), window.height//2 - window.font_height//2))
 	pygame.display.flip()
+
