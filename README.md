@@ -7,16 +7,16 @@ PyInstaller was used in the project, but only for generating the executable gui 
 
 ## building
 #### Clone the repository:
-git clone https://github.com/Puupalikka/simple-chess-engine.git
-cd simple-chess-engine
+##### git clone https://github.com/Puupalikka/simple-chess-engine.git
+##### cd simple-chess-engine
 
 #### Install dependencies and build executables:
-make clean all install
+##### make clean all install
 
 #### Run the engine:
-make run
+##### make run
 
 #### Run the fen-pgn-parser:
-make run-parser
+##### make run-parser
 
 Here the parser will ask the name of the file where fen is located. Files are named so that the first game is named fen1.txt, second fen2.txt and so on. Give here the game you want to be parsed to pgn.
